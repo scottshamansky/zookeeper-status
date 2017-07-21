@@ -27,9 +27,25 @@ def get_zookeeper_host_status(zookeeper_host)
   # get the zookeeper host's current role
   zookeeper_host_mode_data=%x(echo stat | nc #{zookeeper_host} 2181 | grep Mode | cut -d ':' -f 2)
   if zookeeper_host_mode_data == ""
-    zookeeper_host_status["mode"] = " Not Serving"
+    zookeeper_host_status["mode"] = "No Response"
   else
     zookeeper_host_status["mode"] = zookeeper_host_mode_data
+  end
+
+  # get the zookeeper host's serverID
+  zookeeper_host_serverid_data=%x(echo conf | nc #{zookeeper_host} 2181 | grep serverId | cut -d '=' -f 2)
+  if zookeeper_host_serverid_data == ""
+    zookeeper_host_status["serverid"] = "No Response"
+  else
+    zookeeper_host_status["serverid"] = zookeeper_host_serverid_data
+  end
+
+  # get the zookeeper host's watches
+  zookeeper_host_watches_data=%x(echo wchc | nc #{zookeeper_host} 2181).rstrip!.gsub(/\n/, "\n              ")
+  if zookeeper_host_watches_data == ""
+    zookeeper_host_status["watches"] = "(none)"
+  else
+    zookeeper_host_status["watches"] = zookeeper_host_watches_data
   end
 
   # return info about zookeeper host
@@ -41,9 +57,14 @@ puts "Zookeeper Cluster #{zookeeper_cluster_name} status:\n"
 zookeeper_cluster_hosts.each do | zookeeper_host |
   zookeeper_host_status = get_zookeeper_host_status(zookeeper_host)
   puts "  #{zookeeper_host}:\n"
-  mode = zookeeper_host_status["mode"]
+  serverid = zookeeper_host_status["serverid"]
   state = zookeeper_host_status["state"]
-  puts "    Role: #{mode}"
-  puts "    State: #{state}"
+  mode = zookeeper_host_status["mode"]
+  watches = zookeeper_host_status["watches"]
+  puts "    ServerID: #{serverid}"
+  puts "    State:    #{state}"
+  puts "    Role:    #{mode}"
+  puts "    Watches:  #{watches}"
+  puts
 
 end
