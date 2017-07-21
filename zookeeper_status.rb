@@ -1,13 +1,7 @@
 #!/usr/bin/env ruby
-# zookeeper_status.rb
-
 # Brandon Burton, 2014
 
-# Where zookeeper lives
 zookeeper_conf="/etc/zookeeper/zoo.properties"
-
-# this assumes a hostname like 'lookout-zk-bburton-0', where the third bit is the "cluster name"
-zookeeper_cluster_name=%x(hostname).split('-')[-2]
 zookeeper_cluster_hosts = []
 zookeeper_cluster_hosts=%x(grep server #{zookeeper_conf} | cut -d ':' -f 2 | cut -d ':' -f 1).split("\n")
 
@@ -59,7 +53,7 @@ def get_zookeeper_host_status(zookeeper_host)
   return zookeeper_host_status
 end
 
-puts "Zookeeper Cluster #{zookeeper_cluster_name} status:\n"
+puts "Zookeeper cluster status:"
 zookeeper_cluster_hosts.each do | zookeeper_host |
   zookeeper_host_status = get_zookeeper_host_status(zookeeper_host)
   puts "  #{zookeeper_host}:\n"
