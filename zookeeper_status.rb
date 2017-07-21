@@ -8,10 +8,17 @@ zookeeper_conf="/etc/zookeeper/zoo.properties"
 
 # this assumes a hostname like 'lookout-zk-bburton-0', where the third bit is the "cluster name"
 zookeeper_cluster_name=%x(hostname).split('-')[-2]
-
 zookeeper_cluster_hosts = []
 zookeeper_cluster_hosts=%x(grep server #{zookeeper_conf} | cut -d ':' -f 2 | cut -d ':' -f 1).split("\n")
 
+# colorize
+def colorize(text, color_code)
+  "\e[#{color_code}m#{text}\e[0m"
+end
+def red(text); colorize(text, 31); end
+def green(text); colorize(text, 32); end
+
+# get zookeeper host info
 def get_zookeeper_host_status(zookeeper_host)
   zookeeper_host_status = {}
 
@@ -50,7 +57,6 @@ def get_zookeeper_host_status(zookeeper_host)
 
   # return info about zookeeper host
   return zookeeper_host_status
-
 end
 
 puts "Zookeeper Cluster #{zookeeper_cluster_name} status:\n"
@@ -62,9 +68,12 @@ zookeeper_cluster_hosts.each do | zookeeper_host |
   mode = zookeeper_host_status["mode"]
   watches = zookeeper_host_status["watches"]
   puts "    ServerID: #{serverid}"
-  puts "    State:    #{state}"
+  if state == "HEALTHY"
+    puts "    State:    " + green("#{state}")
+  else
+    puts "    State:    " + red("#{state}")
+  end
   puts "    Role:    #{mode}"
   puts "    Watches:  #{watches}"
   puts
-
 end
